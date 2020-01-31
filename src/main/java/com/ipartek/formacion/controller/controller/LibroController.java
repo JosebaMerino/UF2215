@@ -22,78 +22,88 @@ import com.ipartek.formacion.model.pojo.Libro;
 @WebServlet("/api/libro/*")
 public class LibroController extends HttpServlet {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
     private static LibroDAO dao;
 
 
-	/**
-	 * @see Servlet#init(ServletConfig)
-	 */
-	public void init(ServletConfig config) throws ServletException {
-		super.init(config);
-		dao = LibroDAO.getInstance();
-	}
+    /**
+     * @see Servlet#init(ServletConfig)
+     */
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        dao = LibroDAO.getInstance();
+    }
 
-	/**
-	 * @see Servlet#destroy()
-	 */
-	public void destroy() {
-		dao = null;
-	}
+    /**
+     * @see Servlet#destroy()
+     */
+    public void destroy() {
+        dao = null;
+    }
 
-	/**
-	 * @see HttpServlet#service(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    /**
+     * @see HttpServlet#service(HttpServletRequest request, HttpServletResponse response)
+     */
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		response.setContentType("application/json");
-		response.setCharacterEncoding("utf-8");
+        response.setContentType("application/json");
+        response.setCharacterEncoding("utf-8");
 
-		super.service(request, response);
-
-
-	}
-
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-		List<Libro> libros =  dao.getAll();
-
-		try( PrintWriter out = response.getWriter() ){
-
-			response.setStatus(200);
-			Gson json = new Gson();
-			out.print( json.toJson(libros) );
-			out.flush();
-
-		}
+        super.service(request, response);
 
 
+    }
 
-	}
+    /**
+     * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+     */
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doGet(request, response);
-	}
+        // recoger parametros
+        String nombre = request.getParameter("nombre");
 
-	/**
-	 * @see HttpServlet#doPut(HttpServletRequest, HttpServletResponse)
-	 */
-	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-	}
+        List<Libro> libros = null;
+        if(nombre != null && nombre.length() > 0) {
+        	libros = dao.getByName(nombre);
+        } else {
+        	libros =  dao.getAll();
+        }
 
-	/**
-	 * @see HttpServlet#doDelete(HttpServletRequest, HttpServletResponse)
-	 */
-	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-	}
+
+
+        try( PrintWriter out = response.getWriter() ){
+
+            response.setStatus(200);
+            Gson json = new Gson();
+            out.print( json.toJson(libros) );
+            out.flush();
+
+        }
+
+
+
+    }
+
+    /**
+     * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+     */
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // TODO Auto-generated method stub
+        doGet(request, response);
+    }
+
+    /**
+     * @see HttpServlet#doPut(HttpServletRequest, HttpServletResponse)
+     */
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // TODO Auto-generated method stub
+    }
+
+    /**
+     * @see HttpServlet#doDelete(HttpServletRequest, HttpServletResponse)
+     */
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // TODO Auto-generated method stub
+    }
 
 }

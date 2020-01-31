@@ -84,7 +84,7 @@ public class LibroDAO implements ILibroDAO {
 		ArrayList<Libro> registros = new ArrayList<Libro>();
 		try (Connection con = ConnectionManager.getConnection();
 				PreparedStatement pst = con.prepareStatement(SQL_GET_BYNAME);) {
-			pst.setString(1, nombre);
+			pst.setString(1, "%" + nombre + "%");
 			LOG.debug(pst);
 			try (ResultSet rs = pst.executeQuery()) {
 				while (rs.next()) {
