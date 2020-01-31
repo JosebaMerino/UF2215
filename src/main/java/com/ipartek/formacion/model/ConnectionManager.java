@@ -29,11 +29,12 @@ public class ConnectionManager {
 
 		} catch (Exception e) {
 
+			LOG.fatal("El error puede que se deba al puerto al que se conecta. Por defecto es el 3306 pero en el ordenador que se ha implementado la aplicacion es el 3308.");
 			LOG.fatal(e);
 		}
 
 		return conn;
 
 	}
-	
+
 }

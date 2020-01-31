@@ -56,25 +56,25 @@ public class LibroDAO implements ILibroDAO {
 
 	@Override
 	public Libro getById(int id) {
-		// TODO Auto-generated method stub
+		LOG.error("Funcionalidad no implementada");
 		return null;
 	}
 
 	@Override
 	public Libro delete(int id) throws Exception {
-		// TODO Auto-generated method stub
+		LOG.error("Funcionalidad no implementada");
 		return null;
 	}
 
 	@Override
 	public Libro update(int id, Libro pojo) throws Exception {
-		// TODO Auto-generated method stub
+		LOG.error("Funcionalidad no implementada");
 		return null;
 	}
 
 	@Override
 	public Libro create(Libro pojo) throws Exception {
-		// TODO Auto-generated method stub
+		LOG.error("Funcionalidad no implementada");
 		return null;
 	}
 
@@ -100,14 +100,24 @@ public class LibroDAO implements ILibroDAO {
 		return registros;
 	}
 
+	/**
+	 * Pasado un resultset, se encarga de mapear esos campos a un Libro.
+	 *
+	 * @param rs - ResultSet con las columnas correspondientes a un libro con Autor
+	 * @return Libro mapeado a partir del rs
+	 * @throws SQLException
+	 */
 	private Libro mapper(ResultSet rs) throws SQLException {
 		Libro p = new Libro();
+		// mapeo de los campos del libro
 		p.setId(rs.getInt("idLibro"));
 		p.setNombre(rs.getString("nombreLibro"));
 
+		// mapeo del autor del libro
 		Autor autor = p.getAutor();
 		autor.setId(rs.getInt("idAutor"));
 		autor.setNombre(rs.getString("nombreAutor"));
+
 		return p;
 	}
 
