@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +23,8 @@ public class LibroDAO implements ILibroDAO {
 	private final String SQL_GET_ALL = "SELECT l.id 'idLibro', l.nombre 'nombreLibro', a.id 'idAutor', a.nombre 'nombreAutor' FROM libro l, autor a WHERE l.idAutor = a.id ORDER BY l.id ASC LIMIT 500;";
 	private final String SQL_GET_BYNAME = "SELECT l.id 'idLibro', l.nombre 'nombreLibro', a.id 'idAutor', a.nombre 'nombreAutor' FROM libro l, autor a WHERE l.idAutor = a.id AND l.nombre LIKE ? ORDER BY l.idAutor ASC LIMIT 500;";
 	private final String SQL_GET_BYID = "SELECT l.id 'idLibro', l.nombre 'nombreLibro', a.id 'idAutor', a.nombre 'nombreAutor' FROM libro l, autor a WHERE l.idAutor = a.id AND l.id = ? ORDER BY l.id ASC LIMIT 500;";
-
+	private final String SQL_INSERT = "INSERT INTO libro(nombre, idAutor) VALUES (?, ?);";
+	private final String SQL_DELETE = "DELETE FROM libro WHERE id = ?;";
 
 
 	private LibroDAO() {
@@ -77,8 +79,27 @@ public class LibroDAO implements ILibroDAO {
 
 	@Override
 	public Libro delete(int id) throws Exception {
-		LOG.error("Funcionalidad no implementada");
-		return null;
+		Libro resul = getById(id);
+
+		try(Connection con = ConnectionManager.getConnection();
+				PreparedStatement pst = con.prepareStatement(SQL_DELETE)) {
+			pst.setInt(1, id);
+			LOG.debug(pst);
+			int affectedRows = pst.executeUpdate();
+			if(affectedRows == 1) {
+				LOG.trace("Libro eliminado correctamente");
+			} else {
+				LOG.error("Las filas afectadas han sido " + affectedRows);
+				resul = null;
+			}
+		} catch (Exception e) {
+			LOG.error(e);
+		}
+		if(resul == null) {
+			throw new Exception("No se ha podido eliminar el libro " + id);
+		}
+
+		return resul;
 	}
 
 	@Override
@@ -89,8 +110,29 @@ public class LibroDAO implements ILibroDAO {
 
 	@Override
 	public Libro create(Libro pojo) throws Exception {
-		LOG.error("Funcionalidad no implementada");
-		return null;
+		Libro resul = null;
+		try(Connection con = ConnectionManager.getConnection();
+				PreparedStatement pst = con.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)){
+			pst.setString(1, pojo.getNombre());
+			pst.setInt(2, pojo.getAutor().getId());
+			LOG.debug(pst);
+
+			int affectedRows = pst.executeUpdate();
+
+			ResultSet rs = pst.getGeneratedKeys();
+			rs.next();
+			if(affectedRows == 1) {
+				resul = getById(rs.getInt(1));
+				LOG.trace(resul);
+			} else {
+				LOG.warn("No se ha añadido ningun libro a la BD");
+			}
+
+		} catch (Exception e) {
+			LOG.error(e);
+			throw e;
+		}
+		return resul;
 	}
 
 	@Override

@@ -1,11 +1,11 @@
 package com.ipartek.formacion.controller.controller;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.HttpRetryException;
-import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -17,9 +17,12 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.ipartek.formacion.model.LibroDAO;
 import com.ipartek.formacion.model.pojo.Libro;
+import com.ipartek.formacion.model.pojo.Mensaje;
 import com.ipartek.formacion.utils.Utilidades;
+import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 
 /**
  * Servlet implementation class PokemonController
@@ -95,6 +98,8 @@ public class LibroController extends HttpServlet {
 			LOG.trace("La URL esta mal formada");
 			LOG.trace(e);
 			e.printStackTrace();
+			responseObject = new Mensaje("La URL esta mal formada");
+			responseStatus = HttpServletResponse.SC_BAD_REQUEST;
 			error = true;
 		}
 
@@ -118,12 +123,7 @@ public class LibroController extends HttpServlet {
 				responseStatus = (libros.isEmpty() ? HttpServletResponse.SC_NO_CONTENT : HttpServletResponse.SC_OK);
 				responseObject = libros;
 			}
-		} else {
-			LOG.trace("Ha ocurrido un error");
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-
 		}
-
 	}
 
 	/**
@@ -132,7 +132,30 @@ public class LibroController extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
+		Libro libro = null;
+		try {
+			libro = requestJSONtoLibro(request, response);
+		} catch (Exception e) {
+			LOG.error(e);
+		}
+
+		if(libro != null) {
+			try {
+				responseObject = dao.create(libro);
+				responseStatus = HttpServletResponse.SC_OK;
+			} catch(MySQLIntegrityConstraintViolationException e) {
+				if(e.getMessage().contains("Duplicate entry")) {
+					LOG.trace("El titulo del libro esta duplicado");
+					responseStatus = HttpServletResponse.SC_CONFLICT;
+					responseObject = new Mensaje("El titulo del libro esta duplicado");
+				}
+			}
+			catch (Exception e) {
+				LOG.trace("No se ha podido crear el libro");
+				responseStatus = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+			}
+		}
+
 	}
 
 	/**
@@ -148,7 +171,66 @@ public class LibroController extends HttpServlet {
 	 */
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
+		boolean error = false;
+		int id = -1;
+
+		try {
+			id = Utilidades.obtenerId(request.getPathInfo());
+		} catch (Exception e) {
+			LOG.error("La URL esta mal formada");
+			responseObject = new Mensaje("La URL esta mal formada");
+			responseStatus = HttpServletResponse.SC_BAD_REQUEST;
+			error = true;
+		}
+
+		if(!error) {
+			if(id != -1) {
+				try {
+					responseObject = dao.delete(id);
+					responseStatus = HttpServletResponse.SC_OK;
+				} catch (Exception e) {
+					LOG.error(e);
+					responseObject = new Mensaje("No se ha podido eliminar el libro con id " + id);
+					responseStatus = HttpServletResponse.SC_NOT_FOUND;
+				}
+
+			} else {
+				responseObject = new Mensaje("Para eliminar un libro se tiene que pasar el ID");
+				responseStatus = HttpServletResponse.SC_BAD_REQUEST;
+			}
+		}
+	}
+
+	/**
+	 * Intenta obtener un producto de la request body
+	 *
+	 * @param request
+	 * @param response
+	 * @return un producto si puede parsearlo
+	 * @throws Exception: si no puede parsear el producto
+	 */
+	private Libro requestJSONtoLibro(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		// convertir json del request body a Objeto
+		BufferedReader reader = request.getReader();
+		Gson gson = new Gson();
+		Libro libro = null;
+		try {
+			libro = gson.fromJson(reader, Libro.class);
+		} catch (JsonSyntaxException e) {
+			LOG.error("La sintaxis del objeto JSON recibido es incorrecta");
+			responseObject = new Mensaje("La sintaxis del objeto JSON recibido es incorrecta");
+			responseStatus = HttpServletResponse.SC_BAD_REQUEST;
+		} catch (Exception e) {
+			responseStatus = HttpServletResponse.SC_BAD_REQUEST;
+			responseObject = e.getMessage();
+			LOG.error(e);
+		}
+		LOG.debug(" Json convertido a Objeto: " + libro);
+
+		if (libro == null) {
+			throw new Exception("El libro es null");
+		}
+		return libro;
 	}
 
 }
