@@ -163,7 +163,31 @@ public class LibroController extends HttpServlet {
 	 */
 	protected void doPut(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
+		Libro libro = null;
+		int id = -1;
+		try {
+			id = Utilidades.obtenerId(request.getPathInfo());
+			libro = requestJSONtoLibro(request, response);
+		} catch (Exception e) {
+			LOG.error(e);
+		}
+
+		if(libro != null) {
+			try {
+				responseObject = dao.update(id,libro);
+				responseStatus = HttpServletResponse.SC_OK;
+			} catch(MySQLIntegrityConstraintViolationException e) {
+				if(e.getMessage().contains("Duplicate entry")) {
+					LOG.trace("El titulo del libro esta duplicado");
+					responseStatus = HttpServletResponse.SC_CONFLICT;
+					responseObject = new Mensaje("El titulo del libro esta duplicado");
+				}
+			}
+			catch (Exception e) {
+				LOG.trace("No se ha podido crear el libro");
+				responseStatus = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+			}
+		}
 	}
 
 	/**

@@ -24,6 +24,7 @@ public class LibroDAO implements ILibroDAO {
 	private final String SQL_GET_BYNAME = "SELECT l.id 'idLibro', l.nombre 'nombreLibro', a.id 'idAutor', a.nombre 'nombreAutor' FROM libro l, autor a WHERE l.idAutor = a.id AND l.nombre LIKE ? ORDER BY l.idAutor ASC LIMIT 500;";
 	private final String SQL_GET_BYID = "SELECT l.id 'idLibro', l.nombre 'nombreLibro', a.id 'idAutor', a.nombre 'nombreAutor' FROM libro l, autor a WHERE l.idAutor = a.id AND l.id = ? ORDER BY l.id ASC LIMIT 500;";
 	private final String SQL_INSERT = "INSERT INTO libro(nombre, idAutor) VALUES (?, ?);";
+	private final String SQL_UPDATE = "UPDATE libro SET nombre = ?, idAutor = ? WHERE id = ?;";
 	private final String SQL_DELETE = "DELETE FROM libro WHERE id = ?;";
 
 
@@ -104,8 +105,16 @@ public class LibroDAO implements ILibroDAO {
 
 	@Override
 	public Libro update(int id, Libro pojo) throws Exception {
-		LOG.error("Funcionalidad no implementada");
-		return null;
+		Libro resul = null;
+		try(Connection con = ConnectionManager.getConnection();
+				PreparedStatement pst = con.prepareStatement(SQL_UPDATE)) {
+			pst.setString(1, pojo.getNombre());
+			pst.setInt(2, pojo.getAutor().getId());
+			pst.setInt(3, id);
+		} catch (Exception e) {
+			LOG.error(e);
+		}
+		return resul;
 	}
 
 	@Override
