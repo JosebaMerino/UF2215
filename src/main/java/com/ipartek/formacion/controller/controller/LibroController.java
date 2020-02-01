@@ -3,7 +3,9 @@ package com.ipartek.formacion.controller.controller;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -12,6 +14,10 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -22,6 +28,7 @@ import com.ipartek.formacion.model.LibroDAO;
 import com.ipartek.formacion.model.pojo.Libro;
 import com.ipartek.formacion.model.pojo.Mensaje;
 import com.ipartek.formacion.utils.Utilidades;
+import com.ipartek.formacion.utils.Validador;
 import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 
 /**
@@ -138,22 +145,48 @@ public class LibroController extends HttpServlet {
 		} catch (Exception e) {
 			LOG.error(e);
 		}
+		Validador<Libro> validador = new Validador<Libro>();
+
 
 		if(libro != null) {
-			try {
-				responseObject = dao.create(libro);
-				responseStatus = HttpServletResponse.SC_OK;
-			} catch(MySQLIntegrityConstraintViolationException e) {
-				if(e.getMessage().contains("Duplicate entry")) {
-					LOG.trace("El titulo del libro esta duplicado");
-					responseStatus = HttpServletResponse.SC_CONFLICT;
-					responseObject = new Mensaje("El titulo del libro esta duplicado");
+			List<String> errores = validador.validar(libro);
+//
+//			//Crear Factoria y Validador
+//			 ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+//			 Validator validator = factory.getValidator();
+//
+//
+//			//Obtener las ConstrainViolation
+//			Set<ConstraintViolation<Libro>> violations = validator.validate(libro);
+//			if (violations.size() > 0) {
+//			    /* No ha pasado la valiadacion, iterar sobre los mensajes de validacion */
+//			                for (ConstraintViolation<Libro> violation : violations) {
+//								errores.add(violation.getPropertyPath() + " - " +  violation.getMessage() );
+//					}
+//			}else{
+//			    /* No tenemos ningun fallo, la Validacion es correcta */
+//			}
+			if(errores.size() > 0) {
+				responseObject = new Mensaje("El libro tiene un formato invalido", errores);
+				responseStatus = HttpServletResponse.SC_BAD_REQUEST;
+			} else {
+				try {
+					responseObject = dao.create(libro);
+					responseStatus = HttpServletResponse.SC_OK;
+				} catch(MySQLIntegrityConstraintViolationException e) {
+					if(e.getMessage().contains("Duplicate entry")) {
+						LOG.trace("El titulo del libro esta duplicado");
+						responseStatus = HttpServletResponse.SC_CONFLICT;
+						responseObject = new Mensaje("El titulo del libro esta duplicado");
+					}
+				}
+				catch (Exception e) {
+					LOG.trace("No se ha podido crear el libro");
+					responseStatus = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 				}
 			}
-			catch (Exception e) {
-				LOG.trace("No se ha podido crear el libro");
-				responseStatus = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-			}
+		} else {
+
 		}
 
 	}

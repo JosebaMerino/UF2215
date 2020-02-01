@@ -1,9 +1,21 @@
 package com.ipartek.formacion.model.pojo;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.NotBlank;
+
 public class Libro{
 
+	@Min(value = 0)
 	private int id;
+
+	@NotBlank
+	@Length(max = 100, min = 1)
 	private String nombre;
+
+	@NotNull
 	private Autor autor;
 
 

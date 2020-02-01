@@ -111,8 +111,23 @@ public class LibroDAO implements ILibroDAO {
 			pst.setString(1, pojo.getNombre());
 			pst.setInt(2, pojo.getAutor().getId());
 			pst.setInt(3, id);
+
+			LOG.debug(pst);
+
+			int affectedRows = pst.executeUpdate();
+			if(affectedRows == 1) {
+				resul = getById(id);
+				LOG.trace("Actualizacion del libro con id " + id + "realizada correctamente. " + resul);
+			} else if(affectedRows < 1) {
+				LOG.trace("No se ha actualizado ningun libro");
+				resul = null;
+			} else {
+				LOG.error("Se han actualizado mas de un libro");
+				resul = null;
+			}
 		} catch (Exception e) {
 			LOG.error(e);
+			throw e;
 		}
 		return resul;
 	}

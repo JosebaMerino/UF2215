@@ -23,6 +23,11 @@ public class Mensaje {
 		this.mensaje = mensaje;
 	}
 
+	public Mensaje(String mensaje, List<String> errores) {
+		this(mensaje);
+		this.errores = errores;
+	}
+
 	public String getMensaje() {
 		return mensaje;
 	}
