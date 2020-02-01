@@ -21,6 +21,9 @@ public class LibroDAO implements ILibroDAO {
 
 	private final String SQL_GET_ALL = "SELECT l.id 'idLibro', l.nombre 'nombreLibro', a.id 'idAutor', a.nombre 'nombreAutor' FROM libro l, autor a WHERE l.idAutor = a.id ORDER BY l.id ASC LIMIT 500;";
 	private final String SQL_GET_BYNAME = "SELECT l.id 'idLibro', l.nombre 'nombreLibro', a.id 'idAutor', a.nombre 'nombreAutor' FROM libro l, autor a WHERE l.idAutor = a.id AND l.nombre LIKE ? ORDER BY l.idAutor ASC LIMIT 500;";
+	private final String SQL_GET_BYID = "SELECT l.id 'idLibro', l.nombre 'nombreLibro', a.id 'idAutor', a.nombre 'nombreAutor' FROM libro l, autor a WHERE l.idAutor = a.id AND l.id = ? ORDER BY l.id ASC LIMIT 500;";
+
+
 
 	private LibroDAO() {
 		super();
@@ -56,8 +59,20 @@ public class LibroDAO implements ILibroDAO {
 
 	@Override
 	public Libro getById(int id) {
-		LOG.error("Funcionalidad no implementada");
-		return null;
+		Libro resul = null;
+		try(Connection con = ConnectionManager.getConnection();
+				PreparedStatement pst = con.prepareStatement(SQL_GET_BYID);
+				) {
+			pst.setInt(1, id);
+			LOG.debug(pst);
+			try(ResultSet rs = pst.executeQuery()){
+				rs.next();
+				resul = mapper(rs);
+			}
+		} catch (Exception e) {
+			LOG.trace(e);
+		}
+		return resul;
 	}
 
 	@Override
