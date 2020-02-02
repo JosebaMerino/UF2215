@@ -2,6 +2,7 @@ package com.ipartek.formacion.model.pojo;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.executable.ValidateOnExecution;
 
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;

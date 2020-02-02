@@ -1,7 +1,11 @@
 package com.ipartek.formacion.model.pojo;
 
+import javax.validation.constraints.Min;
+
 public class Autor {
+	@Min(value = 1)
 	private int id;
+
 	private String nombre;
 
 	public Autor() {
